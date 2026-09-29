@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { SearchBox } from "./SearchBox";
 import { useUpload } from "./UploadProvider";
 
@@ -23,13 +24,15 @@ export function TopBar() {
 
         <div className="min-w-0 flex-1">
           {!onHome && !inReader && (
-            <div className="mx-auto max-w-xl">
-              <SearchBox variant="bar" primary />
+            <div className="mx-auto hidden max-w-xl md:block">
+              <Suspense fallback={<SearchBox variant="bar" primary />}>
+                <BarSearch primary />
+              </Suspense>
             </div>
           )}
         </div>
 
-        <nav className="flex shrink-0 items-center gap-5 font-mono text-[11px] tracking-[0.14em] uppercase">
+        <nav className="flex shrink-0 items-center gap-4 font-mono text-[11px] tracking-[0.14em] uppercase md:gap-5">
           <NavLink href="/" active={onHome || pathname.startsWith("/books")}>
             Library
           </NavLink>
@@ -44,8 +47,23 @@ export function TopBar() {
           </button>
         </nav>
       </div>
+      {!onHome && !inReader && (
+        <div className="px-4 pb-3 md:hidden">
+          <Suspense fallback={<SearchBox variant="bar" />}>
+            <BarSearch />
+          </Suspense>
+        </div>
+      )}
     </header>
   );
+}
+
+/** The top-bar search reflects the query being viewed on /search and /ask. */
+function BarSearch({ primary }: { primary?: boolean }) {
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const q = pathname === "/search" || pathname === "/ask" ? (params.get("q") ?? "") : "";
+  return <SearchBox variant="bar" primary={primary} initialQuery={q} initialMode={pathname === "/ask" ? "ask" : "search"} />;
 }
 
 function NavLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {

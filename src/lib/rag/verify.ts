@@ -8,6 +8,8 @@
 export interface CitationCheck {
   cited: string[];
   unknown: string[];
+  /** Page numbers written as plain text instead of a passage citation. */
+  pageMentions: string[];
 }
 
 export interface QuoteCheck {
@@ -25,9 +27,20 @@ export function extractCitations(text: string): string[] {
   return ids;
 }
 
+const PAGE_MENTION_RE = /\b(?:pp?\.|pages?)\s*[\divxlc]+(?:\s*[–-]\s*[\divxlc]+)?\b/gi;
+
+/** "p. 42", "pages 10–12": page references the model wrote itself (not verifiable). */
+export function extractPageMentions(text: string): string[] {
+  return [...text.matchAll(PAGE_MENTION_RE)].map((m) => m[0]);
+}
+
 export function checkCitations(text: string, known: Set<string>): CitationCheck {
   const cited = [...new Set(extractCitations(text))];
-  return { cited: cited.filter((c) => known.has(c)), unknown: cited.filter((c) => !known.has(c)) };
+  return {
+    cited: cited.filter((c) => known.has(c)),
+    unknown: cited.filter((c) => !known.has(c)),
+    pageMentions: extractPageMentions(text),
+  };
 }
 
 /** Lowercase, unify quotes/dashes, drop punctuation, collapse whitespace. */

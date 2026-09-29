@@ -10,6 +10,8 @@ export interface ReaderTarget {
   chunkId?: number | null;
   /** Or highlight this literal text (e.g. a quotation). */
   text?: string | null;
+  /** Changes on every navigation request, so re-opening the same target navigates again. */
+  nonce?: number;
 }
 
 interface Props {
@@ -82,7 +84,7 @@ export function PdfReader({ documentId, target, pageCount, onPageChange, compact
   // Follow external navigation (e.g. clicking another citation).
   useEffect(() => {
     setPage(target.page);
-  }, [target.page, target.chunkId, target.text]);
+  }, [target.page, target.chunkId, target.text, target.nonce]);
 
   useEffect(() => setPageInput(String(page)), [page]);
 

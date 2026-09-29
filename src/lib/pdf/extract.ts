@@ -325,6 +325,19 @@ function buildParagraphs(lines: Line[], page: number, bodySize: number): Paragra
         gap > lineGap * 1.45 ||
         (indented && !heading) ||
         prevShort;
+      // A line starting in lower case after an unfinished sentence continues
+      // the paragraph, whatever the layout suggests.
+      if (
+        startNew &&
+        !heading &&
+        !cur!.heading &&
+        gap >= -l.size &&
+        gap < lineGap * 2.5 &&
+        /^\p{Ll}/u.test(l.text) &&
+        !/[.!?:;"'”’)\]]$/.test(prev.text)
+      ) {
+        startNew = false;
+      }
     }
     if (startNew) {
       if (cur) paras.push(cur);

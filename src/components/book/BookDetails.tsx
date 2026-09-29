@@ -43,7 +43,7 @@ export function BookDetails({ initial }: { initial: DocumentRecord }) {
 
   return (
     <div>
-      <div className="mx-auto aspect-[2/3] w-full max-w-[280px] overflow-hidden border border-line-strong bg-panel shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)]">
+      <div className="mx-auto aspect-[2/3] w-full max-w-[200px] overflow-hidden lg:max-w-[280px] border border-line-strong bg-panel shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)]">
         <BookCover doc={doc} size="lg" />
       </div>
 

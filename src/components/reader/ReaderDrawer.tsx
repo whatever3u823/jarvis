@@ -28,11 +28,11 @@ export function useReader() {
 
 /** A slide-over reader: search result → source page without leaving the current view. */
 export function ReaderProvider({ children }: { children: React.ReactNode }) {
-  const [current, setCurrent] = useState<OpenReaderArgs | null>(null);
+  const [current, setCurrent] = useState<(OpenReaderArgs & { nonce: number }) | null>(null);
   const [page, setPage] = useState(1);
 
   const open = useCallback((a: OpenReaderArgs) => {
-    setCurrent(a);
+    setCurrent({ ...a, nonce: Date.now() });
     setPage(a.page);
   }, []);
   const close = useCallback(() => setCurrent(null), []);
@@ -46,7 +46,7 @@ export function ReaderProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(() => ({ open, close }), [open, close]);
   const target = useMemo(
-    () => (current ? { page: current.page, chunkId: current.chunkId, text: current.text } : null),
+    () => (current ? { page: current.page, chunkId: current.chunkId, text: current.text, nonce: current.nonce } : null),
     [current],
   );
 

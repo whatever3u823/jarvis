@@ -17,41 +17,9 @@ import { readFile } from "node:fs/promises";
 import { db } from "../src/lib/db";
 import { hybridSearch } from "../src/lib/search/hybrid";
 import { normalizeForMatch } from "../src/lib/rag/verify";
+import { DEFAULT_CASES, type Case } from "./eval-cases";
 
-interface Case {
-  query: string;
-  /** Substring of the expected book's title. */
-  book: string;
-  /** All of these must appear in a relevant passage. */
-  needles: string[];
-}
 
-const DEFAULT_CASES: Case[] = [
-  { query: "the distinction between what is up to us and what is not", book: "Epictetus", needles: ["Of things some are in our power"] },
-  { query: "people are upset not by events themselves but by their judgments about them", book: "Epictetus", needles: ["not by the things"] },
-  { query: "what to do when you hear that someone has been criticising you behind your back", book: "Epictetus", needles: ["speaks ill of you"] },
-  { query: "responding to a ruler who threatens to imprison and kill you", book: "Epictetus", needles: ["But the tyrant will chain"] },
-  { query: "after a theft he consoles himself that he only lost a cheap object", book: "Epictetus", needles: ["earthen lamp"] },
-  { query: "a man may prefer pain to happiness and be in love with it", book: "Underground", needles: ["passionately, in love with suffering"] },
-  { query: "the narrator introduces himself as ill and malicious", book: "Underground", needles: ["I am a sick man"] },
-  { query: "the nightmare in which drunk peasants flog an old horse to death", book: "Crime", needles: ["Mikolka", "mare"] },
-  { query: "she reads him the gospel story of a man raised from the dead", book: "Crime", needles: ["Lazarus"] },
-  { query: "each morning expect to meet ungrateful, meddling and arrogant people", book: "Meditations", needles: ["morning", "unthankful"] },
-  { query: "the emperor lists the virtues he learned from his relatives and teachers", book: "Meditations", needles: ["grandfather Verus"] },
-  { query: "how the compiler handles loops inside loops when recording traces", book: "Trace", needles: ["nested trace tree"] },
-  // Queries that share distinctive words or names with the text.
-  { query: "What does Epictetus say about the things within our power?", book: "Epictetus", needles: ["Of things some are in our power"] },
-  { query: "Mikolka and the mare", book: "Crime", needles: ["Mikolka", "mare"] },
-  { query: "Sonia reading the raising of Lazarus", book: "Crime", needles: ["Lazarus", "Sonia"] },
-  { query: "the earthen lamp", book: "Epictetus", needles: ["earthen lamp"] },
-  { query: "what he learned from his grandfather Verus", book: "Meditations", needles: ["grandfather Verus"] },
-  { query: "spite and the spiteful official", book: "Underground", needles: ["spiteful"] },
-  // Rare exact terms, where keyword matching should help.
-  { query: "hupolaepsis", book: "Epictetus", needles: ["hupolaepsis"] },
-  { query: "the story about Felicion", book: "Epictetus", needles: ["Felicion"] },
-  { query: "Epaphroditus", book: "Epictetus", needles: ["Epaphroditus"] },
-  { query: "what did Rusticus teach him", book: "Meditations", needles: ["Rusticus"] },
-];
 
 async function pageAccuracy() {
   const { rows: chunks } = await db().query(

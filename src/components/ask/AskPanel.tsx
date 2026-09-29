@@ -232,6 +232,11 @@ function Turn({ turn, onStop }: { turn: AskTurnState; onStop: () => void }) {
           {(turn.citations?.unknown.length ?? 0) > 0 && (
             <span className="text-rust">{turn.citations!.unknown.length} invalid citation(s) flagged</span>
           )}
+          {(turn.citations?.pageMentions?.length ?? 0) > 0 && (
+            <span className="text-rust" title={turn.citations!.pageMentions.join(", ")}>
+              {turn.citations!.pageMentions.length} page reference(s) written without a citation; not verified
+            </span>
+          )}
           {seconds && <span>{seconds}s</span>}
         </div>
       )}

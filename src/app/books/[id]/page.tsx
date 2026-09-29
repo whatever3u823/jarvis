@@ -21,32 +21,32 @@ export default async function BookPage({ params, searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-[1300px] px-4 pt-12 pb-24 md:px-8">
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-16">
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+      <div className="grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-[280px_minmax(0,1fr)] lg:grid-rows-[auto_1fr]">
+        <header className="min-w-0 lg:col-start-2 lg:row-start-1">
+          <div className="label mb-4 flex items-center gap-3">
+            <span className="h-px w-8 bg-brass-dim" />
+            Volume
+          </div>
+          <h1 className="font-display text-[36px] leading-[1.05] text-ivory md:text-[52px]">{doc.title}</h1>
+          {doc.author && <div className="mt-3 font-serif text-[20px] text-parchment italic md:text-[21px]">{doc.author}</div>}
+          {doc.description && <p className="mt-5 max-w-2xl font-serif text-[17px] leading-relaxed text-muted">{doc.description}</p>}
+          {doc.tags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2 font-mono text-[10px] tracking-wider text-muted uppercase">
+              {doc.tags.map((t) => (
+                <span key={t} className="border border-line px-2 py-0.5">
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+          <StatusNotice status={doc.status} detail={doc.statusDetail} />
+        </header>
+
+        <aside className="lg:sticky lg:top-24 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-start">
           <BookDetails initial={doc} />
         </aside>
 
-        <div className="min-w-0">
-          <header className="mb-10">
-            <div className="label mb-4 flex items-center gap-3">
-              <span className="h-px w-8 bg-brass-dim" />
-              Volume
-            </div>
-            <h1 className="font-display text-[40px] leading-[1.05] text-ivory md:text-[52px]">{doc.title}</h1>
-            {doc.author && <div className="mt-3 font-serif text-[21px] text-parchment italic">{doc.author}</div>}
-            {doc.description && <p className="mt-5 max-w-2xl font-serif text-[17px] leading-relaxed text-muted">{doc.description}</p>}
-            {doc.tags.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2 font-mono text-[10px] tracking-wider text-muted uppercase">
-                {doc.tags.map((t) => (
-                  <span key={t} className="border border-line px-2 py-0.5">
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
-            <StatusNotice status={doc.status} detail={doc.statusDetail} />
-          </header>
-
+        <div className="min-w-0 lg:col-start-2 lg:row-start-2">
           <BookWorkspace doc={doc} initialMode={mode} initialQuery={sp.q} />
         </div>
       </div>

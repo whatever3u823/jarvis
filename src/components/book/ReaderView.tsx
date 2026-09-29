@@ -8,7 +8,7 @@ import { PdfReader } from "../reader/PdfReader";
 /** Full-page reader with a contents rail; the current page is mirrored in the URL. */
 export function ReaderView({ doc, page, chunkId }: { doc: DocumentRecord; page: number; chunkId: number | null }) {
   const [current, setCurrent] = useState(page);
-  const [target, setTarget] = useState({ page, chunkId });
+  const [target, setTarget] = useState<{ page: number; chunkId: number | null; nonce?: number }>({ page, chunkId });
   const [rail, setRail] = useState(true);
 
   const onPageChange = (p: number) => {
@@ -40,7 +40,7 @@ export function ReaderView({ doc, page, chunkId }: { doc: DocumentRecord; page: 
               <li key={i}>
                 <button
                   onClick={() => {
-                    setTarget({ page: o.page, chunkId: null });
+                    setTarget({ page: o.page, chunkId: null, nonce: Date.now() });
                     onPageChange(o.page);
                   }}
                   className={`flex w-full items-baseline gap-3 py-1.5 pr-4 text-left transition-colors hover:bg-hover ${i === activeIdx ? "text-brass" : "text-parchment"}`}

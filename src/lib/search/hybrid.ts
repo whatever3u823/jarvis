@@ -97,16 +97,29 @@ async function informativeLexemes(client: PoolClient, text: string): Promise<str
   if (rows.length === 0) return [];
   const total = await chunkCount(client);
   const cap = Math.max(25, Math.ceil(total * MAX_TERM_DF));
+  if (dfCache.total !== total) {
+    dfCache.total = total;
+    dfCache.map.clear();
+  }
   const keep: string[] = [];
   for (const { lexeme } of rows) {
-    const { rows: c } = await client.query<{ n: number }>(
-      `select count(*)::int as n from (select 1 from chunks where tsv @@ to_tsquery('simple', $1) limit ${cap + 1}) t`,
-      [quoteLexeme(lexeme)],
-    );
-    if (c[0].n > 0 && c[0].n <= cap) keep.push(quoteLexeme(lexeme));
+    let n = dfCache.map.get(lexeme);
+    if (n === undefined) {
+      const { rows: c } = await client.query<{ n: number }>(
+        `select count(*)::int as n from (select 1 from chunks where tsv @@ to_tsquery('simple', $1) limit ${cap + 1}) t`,
+        [quoteLexeme(lexeme)],
+      );
+      n = c[0].n;
+      if (dfCache.map.size > 20_000) dfCache.map.clear();
+      dfCache.map.set(lexeme, n);
+    }
+    if (n > 0 && n <= cap) keep.push(quoteLexeme(lexeme));
   }
   return keep;
 }
+
+/** Capped document frequencies per lexeme, valid while the passage count is unchanged. */
+const dfCache = { total: -1, map: new Map<string, number>() };
 
 function quoteLexeme(lx: string): string {
   return `'${lx.replace(/'/g, "''").replace(/\\/g, "\\\\")}'`;

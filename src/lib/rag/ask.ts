@@ -112,7 +112,7 @@ const TOOLS: Anthropic.Beta.BetaToolUnion[] = [
       type: "object",
       properties: {
         book: { type: "string", description: "Book ref, e.g. \"B1\"." },
-        start_page: { type: "integer", description: "First page (physical page number, as in the passage 'pages' attribute when no label is shown)." },
+        start_page: { type: "integer", description: "First physical page: the passage's pdf_pages attribute if present, otherwise its pages attribute." },
         end_page: { type: "integer", description: "Last page (at most start_page + 2)." },
       },
       required: ["book", "start_page", "end_page"],

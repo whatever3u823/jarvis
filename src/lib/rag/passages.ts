@@ -112,6 +112,10 @@ export function formatPassage(p: Passage): string {
     `title="${escapeAttr(p.title)}"`,
     p.author ? `author="${escapeAttr(p.author)}"` : null,
     `pages="${pageRange(p)}"`,
+    // When the printed labels differ from physical pages, give both (read_pages takes physical ones).
+    (p.pageLabelStart && p.pageLabelStart !== String(p.pageStart)) || (p.pageLabelEnd && p.pageLabelEnd !== String(p.pageEnd))
+      ? `pdf_pages="${p.pageStart === p.pageEnd ? p.pageStart : `${p.pageStart}-${p.pageEnd}`}"`
+      : null,
     p.chapter ? `chapter="${escapeAttr(p.chapter)}"` : null,
   ]
     .filter(Boolean)

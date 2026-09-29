@@ -84,7 +84,9 @@ test("chunking: respects chapter boundaries and size limits", () => {
 test("citations: known and unknown passage IDs", () => {
   assert.deepEqual(extractCitations("A [P1]. B [P2, P3]; C [P4][P5]."), ["P1", "P2", "P3", "P4", "P5"]);
   const check = checkCitations("As he says [P1][P7].", new Set(["P1", "P2"]));
-  assert.deepEqual(check, { cited: ["P1"], unknown: ["P7"] });
+  assert.deepEqual(check, { cited: ["P1"], unknown: ["P7"], pageMentions: [] });
+  // Hand-written page numbers are surfaced, since they can't be verified.
+  assert.deepEqual(checkCitations("On p. 42 and pages 10–12 [P1].", new Set(["P1"])).pageMentions, ["p. 42", "pages 10–12"]);
 });
 
 test("quotations: verbatim quotes verify, invented ones don't", () => {
