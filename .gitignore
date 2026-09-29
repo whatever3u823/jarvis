@@ -1,0 +1,10 @@
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+.env
+.env.local
+# Local data: uploaded PDFs, covers, and downloaded model weights
+data/
+models/
+public/pdf.worker.min.mjs

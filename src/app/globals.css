@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+/*
+ * Design language: a private reading room after dark.
+ * Near-black warm charcoal, ivory type, a single restrained brass accent,
+ * hairline rules. Serif for anything that belongs to a book, sans for
+ * controls, mono for technical metadata.
+ */
+@theme {
+  --color-ink: #0b0b0a;
+  --color-panel: #111110;
+  --color-raised: #171714;
+  --color-hover: #1d1c19;
+  --color-line: #24231f;
+  --color-line-strong: #36342e;
+
+  --color-ivory: #ece5d4;
+  --color-parchment: #c8c0ad;
+  --color-muted: #8b8575;
+  --color-faint: #5f5b51;
+
+  --color-brass: #b99a5b;
+  --color-brass-bright: #d4b573;
+  --color-brass-dim: #7d6a42;
+  --color-rust: #b8674f;
+  --color-sage: #8d9c7a;
+
+  --font-display: "Cormorant Garamond", "EB Garamond Variable", Georgia, serif;
+  --font-serif: "EB Garamond Variable", Georgia, serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+
+  --animate-fade-in: fade-in 240ms ease-out both;
+  --animate-rise: rise 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-pulse-soft: pulse-soft 2.2s ease-in-out infinite;
+  --animate-slide-in: slide-in 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+  }
+  @keyframes slide-in {
+    from { transform: translateX(24px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    background: var(--color-ink);
+    color: var(--color-ivory);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--color-ink);
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-brass) 38%, transparent);
+    color: var(--color-ivory);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--color-brass);
+    outline-offset: 2px;
+  }
+
+  button {
+    text-transform: inherit;
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  /* Small caps label used for section headers and metadata keys. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .hairline {
+    border-color: var(--color-line);
+  }
+
+  /* Search keyword highlight inside excerpts. */
+  mark.hit {
+    background: transparent;
+    color: var(--color-brass-bright);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-brass) 55%, transparent);
+  }
+
+  /* Long-form answer typography. */
+  .prose-answer {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--color-ivory);
+  }
+  .prose-answer p { margin: 0 0 0.9em; }
+  .prose-answer h1, .prose-answer h2, .prose-answer h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    color: var(--color-ivory);
+    margin: 1.4em 0 0.5em;
+    line-height: 1.2;
+  }
+  .prose-answer h1 { font-size: 1.6rem; }
+  .prose-answer h2 { font-size: 1.4rem; }
+  .prose-answer h3 { font-size: 1.2rem; }
+  .prose-answer ul, .prose-answer ol { margin: 0 0 0.9em; padding-left: 1.3em; }
+  .prose-answer ul { list-style: none; }
+  .prose-answer ul > li { position: relative; }
+  .prose-answer ul > li::before {
+    content: "";
+    position: absolute;
+    left: -0.95em;
+    top: 0.8em;
+    width: 0.35em;
+    height: 1px;
+    background: var(--color-brass);
+  }
+  .prose-answer ol { list-style: decimal; }
+  .prose-answer ol > li::marker { font-family: var(--font-mono); font-size: 0.8em; color: var(--color-muted); }
+  .prose-answer li { margin: 0.25em 0; }
+  .prose-answer strong { font-weight: 600; color: #f5efe2; }
+  .prose-answer em { font-style: italic; }
+  .prose-answer blockquote {
+    margin: 1em 0;
+    padding-left: 1em;
+    border-left: 1px solid var(--color-brass-dim);
+    color: var(--color-parchment);
+    font-style: italic;
+  }
+  .prose-answer code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    color: var(--color-parchment);
+  }
+  .prose-answer hr { border-color: var(--color-line); margin: 1.5em 0; }
+  .prose-answer table { width: 100%; border-collapse: collapse; font-size: 0.95em; margin: 1em 0; }
+  .prose-answer th, .prose-answer td { border-bottom: 1px solid var(--color-line); padding: 0.4em 0.6em; text-align: left; vertical-align: top; }
+  .prose-answer th { font-family: var(--font-mono); font-size: 0.7em; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); font-weight: 400; }
+
+  /* pdf.js text layer (selection + highlighting of cited passages).
+     Mirrors the essential rules of pdfjs-dist/web/pdf_viewer.css. The page
+     container sets --total-scale-factor to the render scale. */
+  .textLayer {
+    position: absolute;
+    text-align: initial;
+    inset: 0;
+    overflow: clip;
+    line-height: 1;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-size-adjust: none;
+    forced-color-adjust: none;
+    transform-origin: 0 0;
+    z-index: 0;
+    --min-font-size: 1;
+    --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+    --min-font-size-inv: calc(1 / var(--min-font-size));
+  }
+  .textLayer :is(span, br) {
+    color: transparent;
+    position: absolute;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+    user-select: text;
+  }
+  .textLayer > :not(.markedContent),
+  .textLayer .markedContent span:not(.markedContent) {
+    z-index: 1;
+    --font-height: 0;
+    font-size: calc(var(--text-scale-factor) * var(--font-height));
+    --scale-x: 1;
+    --rotate: 0deg;
+    transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+  }
+  .textLayer .markedContent { display: contents; }
+  .textLayer span::selection { background: rgba(185, 154, 91, 0.35); }
+  .textLayer span.passage-hl {
+    background: rgba(214, 170, 72, 0.30);
+    border-radius: 1px;
+  }
+  .textLayer .endOfContent {
+    display: block;
+    position: absolute;
+    inset: 100% 0 0;
+    z-index: 0;
+    cursor: default;
+    user-select: none;
+  }
+
+  .page-paper canvas {
+    filter: sepia(0.14) brightness(0.9) contrast(1.02);
+  }
+  .page-night canvas {
+    filter: invert(0.88) hue-rotate(180deg) sepia(0.18) contrast(0.92);
+  }
+}
