@@ -88,16 +88,16 @@ npm run eval:retrieval      # page accuracy of every indexed passage + retrieval
 
 `eval:retrieval` measures two things against whatever is in your database:
 
-1. **Page accuracy**: every passage's text is located in the page sequence and must start on the page it cites and end on the page it cites. On the development library (six PDFs, 1,613 pages, including an 836-page novel and a two-column paper) 99.6% of passages pass. The remainder are text-order quirks (footnotes, two-column layout) where the cited pages are still correct.
+1. **Page accuracy**: every passage's text is located in the page sequence and must start on the page it cites and end on the page it cites. On the development library (six PDFs, 1,613 pages, including an 836-page novel and a two-column paper) 99.5% of passages pass. The remainder are text-order quirks (footnotes, two-column layout) where the cited pages are still correct.
 2. **Retrieval**: queries whose correct passage is identified by a verbatim phrase, most deliberately paraphrased so they share little wording with the text. On the development library:
 
    | ranking | hit@1 | hit@5 | MRR |
    |---|---|---|---|
-   | vector only | 13/22 | 18/22 | 0.689 |
-   | keyword only | 6/22 | 8/22 | 0.318 |
-   | **hybrid (default)** | **13/22** | **19/22** | **0.712** |
+   | vector only | 18/34 | 24/34 | 0.618 |
+   | keyword only | 9/34 | 12/34 | 0.298 |
+   | **hybrid (default)** | **20/34** | **26/34** | **0.672** |
 
-   Plain reciprocal-rank fusion of the two lists scored *worse* than vector-only (MRR 0.48): without IDF, common words make the keyword list mostly noise. That result is why ranking is similarity-first with a small bounded boost for rare exact terms. You can pass your own cases: `npm run eval:retrieval -- my-cases.json` (an array of `{ "query", "book", "needles": [...] }`).
+   In an earlier run, plain reciprocal-rank fusion of the two lists scored *worse* than vector-only (MRR 0.48 vs 0.68 on the first 18 queries): without IDF, common words make the keyword list mostly noise. That result is why ranking is similarity-first with a small bounded boost for rare exact terms. Boost values from 0.015 to 0.06 perform within one query of each other; chunk sizes of 170 and 250 words were also compared and tied (MRR 0.627 vs 0.633), so the larger passages, which give the model more context, were kept. You can pass your own cases: `npm run eval:retrieval -- my-cases.json` (an array of `{ "query", "book", "needles": [...] }`).
 
 Handy CLIs: `npm run search -- "query"`, `npm run ask -- [--book <id>] "question"`, `npx tsx scripts/inspect-pdf.ts book.pdf [page]` (shows what extraction sees: outline, headers removed, chunk sizes).
 
