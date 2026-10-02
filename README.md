@@ -1,5 +1,7 @@
 # Jarvis — a private library
 
+> This repository also holds **[the club](club/README.md)**: a separate, self-contained app for a private two-person book club (`club/`).
+
 A personal web application for a library of PDFs (mostly books). Upload a book and it is read, split into passages, indexed for semantic and keyword search, and made answerable: ask a question of one volume or of the whole library and get an answer grounded in the text, with every claim tied to a passage you can open at its page.
 
 The rule the whole system is built around: **answers come from your library, not from the model's general knowledge**, and a citation can only ever point at text that was actually retrieved.
