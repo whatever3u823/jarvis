@@ -118,7 +118,7 @@ export async function createDocumentFromUpload(fileName: string, bytes: Uint8Arr
   );
   const doc = toRecord(rows[0]);
   try {
-    await storage.put(keys.original(doc.id), bytes);
+    await storage.put(keys.original(doc.id), bytes, "application/pdf");
   } catch (err) {
     await db().query("delete from documents where id = $1", [doc.id]);
     throw err;

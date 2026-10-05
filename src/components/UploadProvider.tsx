@@ -24,7 +24,10 @@ export function useUpload() {
 
 export const LIBRARY_CHANGED = "jarvis:library-changed";
 
-function uploadOne(file: File, onProgress: (p: number) => void): Promise<{ status: number; body: any }> {
+type UploadResult = { status: number; body: any };
+
+/** Local mode: multipart POST to the app. */
+function uploadMultipart(file: File, onProgress: (p: number) => void): Promise<UploadResult> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/documents");
@@ -43,8 +46,27 @@ function uploadOne(file: File, onProgress: (p: number) => void): Promise<{ statu
   });
 }
 
+/** Hosted mode: upload straight to Vercel Blob, then register it with the app. */
+async function uploadToBlob(file: File, onProgress: (p: number) => void): Promise<UploadResult> {
+  const { upload } = await import("@vercel/blob/client");
+  const uploadId = crypto.randomUUID();
+  await upload(`incoming/${uploadId}.pdf`, file, {
+    access: "private",
+    handleUploadUrl: "/api/uploads",
+    contentType: "application/pdf",
+    multipart: file.size > 8 * 1024 * 1024,
+    onUploadProgress: (e) => onProgress(Math.min(0.99, e.percentage / 100)),
+  });
+  const res = await fetch("/api/uploads/complete", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ uploadId, fileName: file.name }),
+  });
+  return { status: res.status, body: await res.json().catch(() => null) };
+}
+
 /** Drag a PDF anywhere onto the window to add it to the library. */
-export function UploadProvider({ children }: { children: React.ReactNode }) {
+export function UploadProvider({ children, mode = "multipart" }: { children: React.ReactNode; mode?: "multipart" | "blob" }) {
   const router = useRouter();
   const [items, setItems] = useState<UploadItem[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -77,7 +99,8 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         queue.current = queue.current.then(async () => {
           update(key, { state: "uploading" });
           try {
-            const { status, body } = await uploadOne(file, (p) => update(key, { progress: p }));
+            const send = mode === "blob" ? uploadToBlob : uploadMultipart;
+            const { status, body } = await send(file, (p) => update(key, { progress: p }));
             if (status === 201) update(key, { state: "done", progress: 1, documentId: body.document.id });
             else if (status === 200 && body?.duplicate)
               update(key, { state: "duplicate", progress: 1, documentId: body.document.id, message: `Already in the library as “${body.document.title}”.` });
@@ -90,7 +113,7 @@ export function UploadProvider({ children }: { children: React.ReactNode }) {
         });
       });
     },
-    [router],
+    [router, mode],
   );
 
   useEffect(() => {

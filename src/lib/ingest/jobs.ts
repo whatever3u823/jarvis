@@ -25,11 +25,16 @@ export async function enqueueJob(documentId: string, kind: JobKind): Promise<voi
   await db().query("notify jarvis_jobs");
 }
 
+/** A job "running" for longer than this was abandoned (crashed worker or timed-out function). */
+const STALE_AFTER = "15 minutes";
+
 export async function claimJob(): Promise<Job | null> {
   const { rows } = await db().query(
     `update jobs set status = 'running', started_at = now(), attempts = attempts + 1
      where id = (
-       select id from jobs where status = 'pending'
+       select id from jobs
+       where status = 'pending'
+          or (status = 'running' and started_at < now() - interval '${STALE_AFTER}' and attempts < 3)
        order by created_at for update skip locked limit 1)
      returning id, document_id, kind, attempts`,
   );

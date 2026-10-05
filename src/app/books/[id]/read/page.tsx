@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ page?: string; chunk?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const doc = await getDocument((await params).id);
+  // Metadata must never take the page down (e.g. while the database is being set up).
+  const doc = await getDocument((await params).id).catch(() => null);
   return { title: doc ? `Reading · ${doc.title}` : "Not found" };
 }
 

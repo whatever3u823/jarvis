@@ -12,6 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Private PDF library: Next.js 16 app router (`src/app`), a separate ingestion worker (`scripts/worker.ts`), Postgres + pgvector. See README.md for the architecture.
 
+- Two deployment shapes (`src/lib/config.ts`): local (Docker Postgres, disk, local embeddings, worker) and Vercel (Neon, Blob, Voyage, inline jobs via `after()`, `APP_PASSWORD` gate in `src/proxy.ts`). Keep both working; `src/lib/setup.ts` reports what a deployment is missing.
 - Run: `npm run dev` (web + worker). Checks: `npm run typecheck`, `npm test`, `npm run test:integration`, `npm run eval:retrieval`.
 - Grounding is the core invariant: the model cites server-issued passage IDs (`src/lib/rag/passages.ts`); citations and quotations are verified after generation (`src/lib/rag/verify.ts`). Don't let the model or UI produce free-text page references.
 - Chunk page ranges must stay exact: run `npm run eval:retrieval` (page accuracy) after touching `src/lib/pdf/extract.ts` or `src/lib/ingest/chunk.ts`.

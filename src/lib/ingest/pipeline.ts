@@ -78,7 +78,7 @@ export async function ingestDocument(documentId: string, log: (msg: string) => v
     // Cover
     let hasCover = false;
     try {
-      await storage.put(keys.cover(documentId), await renderCover(pdf));
+      await storage.put(keys.cover(documentId), await renderCover(pdf), "image/jpeg");
       hasCover = true;
     } catch (err) {
       log(`cover rendering failed: ${err instanceof Error ? err.message : err}`);
@@ -140,7 +140,8 @@ export async function ingestDocument(documentId: string, log: (msg: string) => v
     const chunks = chunkParagraphs(ex.paragraphs);
     const embedder = getEmbedder();
     const vectors: number[][] = [];
-    const batch = 32;
+    // Remote providers get fewer, larger requests (rate limits); the local model reports progress more often.
+    const batch = config.embeddingProvider === "voyage" ? 128 : 32;
     for (let i = 0; i < chunks.length; i += batch) {
       const slice = chunks.slice(i, i + batch);
       vectors.push(...(await embedder.embedDocuments(slice.map((c) => embeddingText(meta.title, meta.author, c)))));

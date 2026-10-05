@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { config } from "@/lib/config";
 import { createDocumentFromUpload, listDocuments, UploadError } from "@/lib/documents";
+import { scheduleInlineJobs } from "@/lib/ingest/runner";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export async function GET() {
   return NextResponse.json({ documents: await listDocuments() });
@@ -24,6 +26,7 @@ export async function POST(req: Request) {
 
   try {
     const result = await createDocumentFromUpload(file.name, new Uint8Array(await file.arrayBuffer()));
+    await scheduleInlineJobs();
     return NextResponse.json(result, { status: result.duplicate ? 200 : 201 });
   } catch (err) {
     if (err instanceof UploadError) return NextResponse.json({ error: err.message }, { status: 415 });

@@ -29,6 +29,32 @@ Search works without an API key. Answering questions needs `ANTHROPIC_API_KEY`; 
 
 For everyday use, `npm run build && npm start` runs the production build (web + worker). Both bind to `127.0.0.1` only: there is no login, so don't expose the app to a network you don't trust.
 
+## Deploy to Vercel
+
+Vercel has no database, no persistent disk and no always-on processes, so a deployment swaps in hosted pieces (chosen automatically from the environment):
+
+| | local | on Vercel |
+|---|---|---|
+| database | Postgres + pgvector in Docker | **Neon** Postgres (pgvector built in) |
+| PDFs and covers | `data/storage` on disk | **Vercel Blob**, private; browsers upload straight to it, so large books aren't limited by the 4.5 MB request cap |
+| search embeddings | local bge-base model | **Voyage AI** (`voyage-3.5`, 1024-d) |
+| indexing | background worker | runs in the upload request's function after the response (`after()`); a volume left waiting by a timed-out function is picked up again automatically |
+| access | localhost only | **password** (`APP_PASSWORD`) |
+
+Steps, in the Vercel project:
+
+1. **Storage → Create → Neon** (Postgres), connect it to the project. This sets `DATABASE_URL`. Tables are created on first start.
+2. **Storage → Create → Blob**, connect it. This sets `BLOB_READ_WRITE_TOKEN`.
+3. **Settings → Environment Variables**: add `APP_PASSWORD` (anything you like), `VOYAGE_API_KEY` (from [dash.voyageai.com](https://dash.voyageai.com)), and optionally `ANTHROPIC_API_KEY` for answers.
+4. **Redeploy** (Deployments → ⋯ → Redeploy). Environment changes only apply to new deployments.
+
+Until all of that is in place, the deployment shows a setup checklist saying exactly what is missing, instead of failing.
+
+Notes:
+- Voyage accounts without a payment method have very low rate limits; indexing retries and waits, but a long book can run out of time. Adding a payment method raises the limits (the free token allowance still applies).
+- Indexing has the function's time limit (up to 300 s here). A few-hundred-page book takes well under a minute with hosted embeddings.
+- A database indexed with one embedding provider can't be searched with another (different vector sizes); the setup check reports a mismatch.
+
 ---
 
 ## What it does
@@ -138,6 +164,11 @@ Set in `.env` (see `.env.example`):
 | `STORAGE_DIR` | `./data/storage` | original PDFs, covers |
 | `MODELS_DIR` | `./models` | embedding model weights |
 | `MAX_UPLOAD_MB` | `300` | |
+| `APP_PASSWORD` | — | required on Vercel; enables the sign-in page anywhere |
+| `VOYAGE_API_KEY` | — | use Voyage AI embeddings instead of the local model (default on Vercel) |
+| `VOYAGE_MODEL` | `voyage-3.5` | |
+| `BLOB_READ_WRITE_TOKEN` | — | store files in Vercel Blob instead of the local disk |
+| `INLINE_JOBS` | `1` on Vercel | index in the web process instead of the worker |
 
 ## Extending it
 
@@ -156,4 +187,4 @@ The MVP is deliberately small, but the seams for the planned features are in pla
 - Tuned for English: the full-text configuration and the embedding model are English-centric.
 - No cross-encoder reranker yet; retrieval is embedding-first, and Claude's own follow-up searches make up much of the difference for hard questions.
 - Title and author come from PDF metadata, a large title on the first pages, or a `Title by Author.pdf` filename. They are editable, and edits survive re-indexing, but re-index a volume after editing to refresh the embedding headers.
-- Single user, no authentication; the servers listen on localhost only.
+- Single user. Locally the servers listen on localhost only; deployed, access is a single shared password.

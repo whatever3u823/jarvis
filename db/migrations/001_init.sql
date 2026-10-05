@@ -64,7 +64,7 @@ create table chunks (
   chapter     text,
   text        text not null,
   word_count  integer not null,
-  embedding   vector(768) not null,
+  embedding   vector({{EMBEDDING_DIMENSIONS}}) not null,
   tsv         tsvector generated always as (to_tsvector('english', text)) stored,
   unique (document_id, ordinal)
 );

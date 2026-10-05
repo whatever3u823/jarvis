@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { SearchBox } from "./SearchBox";
 import { useUpload } from "./UploadProvider";
 
-export function TopBar() {
+export function TopBar({ canSignOut = false }: { canSignOut?: boolean }) {
   const pathname = usePathname();
   const { pickFiles } = useUpload();
   const onHome = pathname === "/";
@@ -39,6 +39,14 @@ export function TopBar() {
           <NavLink href="/ask" active={pathname.startsWith("/ask")}>
             Ask
           </NavLink>
+          {canSignOut && (
+            <button
+              onClick={() => fetch("/api/logout", { method: "POST" }).then(() => window.location.assign("/login"))}
+              className="hidden text-muted transition-colors hover:text-parchment md:block"
+            >
+              Lock
+            </button>
+          )}
           <button
             onClick={pickFiles}
             className="rounded-sm border border-line-strong px-3 py-1.5 text-parchment transition-colors hover:border-brass-dim hover:text-brass"

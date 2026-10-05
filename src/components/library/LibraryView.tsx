@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DocumentRecord } from "@/lib/documents";
 import { formatDate, STATUS_LABEL } from "@/lib/shared/format";
 import { LIBRARY_CHANGED, useUpload } from "../UploadProvider";
@@ -46,11 +46,23 @@ export function LibraryView({ initial }: { initial: DocumentRecord[] }) {
 
   // Poll while anything is being indexed.
   const busy = docs.some((d) => d.status === "queued" || d.status === "processing");
+  const lastNudge = useRef(0);
   useEffect(() => {
     const refresh = () =>
       fetch("/api/documents")
         .then((r) => r.json())
-        .then((j) => setDocs(j.documents))
+        .then((j: { documents: DocumentRecord[] }) => {
+          setDocs(j.documents);
+          // Without a background worker (hosted), a volume left waiting, e.g.
+          // after a function timed out, is picked up again by nudging the queue.
+          const stale = j.documents.some(
+            (d) => (d.status === "queued" || d.status === "processing") && Date.now() - Date.parse(d.updatedAt) > 45_000,
+          );
+          if (stale && Date.now() - lastNudge.current > 60_000) {
+            lastNudge.current = Date.now();
+            void fetch("/api/jobs/run", { method: "POST" }).catch(() => {});
+          }
+        })
         .catch(() => {});
     window.addEventListener(LIBRARY_CHANGED, refresh);
     const t = busy ? setInterval(refresh, 1500) : null;

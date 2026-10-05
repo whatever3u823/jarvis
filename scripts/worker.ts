@@ -5,8 +5,8 @@
  */
 import "./env";
 import { db } from "../src/lib/db";
-import { claimJob, finishJob, recoverInterruptedJobs } from "../src/lib/ingest/jobs";
-import { ingestDocument } from "../src/lib/ingest/pipeline";
+import { recoverInterruptedJobs } from "../src/lib/ingest/jobs";
+import { runPendingJobs } from "../src/lib/ingest/runner";
 
 const log = (msg: string) => console.log(`[worker ${new Date().toISOString().slice(11, 19)}] ${msg}`);
 
@@ -26,29 +26,16 @@ async function main() {
 
   log("ready");
   while (!stopping) {
-    const job = await claimJob();
-    if (!job) {
-      await new Promise<void>((resolve) => {
-        wake = resolve;
-        setTimeout(resolve, 2000);
-      });
-      wake = null;
-      continue;
-    }
-    const started = Date.now();
-    log(`job ${job.id}: ${job.kind} ${job.documentId} (attempt ${job.attempts})`);
+    await new Promise<void>((resolve) => {
+      wake = resolve;
+      setTimeout(resolve, 2000);
+    });
+    wake = null;
+    if (stopping) break;
     try {
-      await ingestDocument(job.documentId, (m) => log(`  ${m}`));
-      await finishJob(job.id);
-      log(`job ${job.id}: done in ${((Date.now() - started) / 1000).toFixed(1)}s`);
+      await runPendingJobs(Number.POSITIVE_INFINITY, log);
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      log(`job ${job.id}: failed: ${message}`);
-      await finishJob(job.id, message);
-      await db().query(
-        `update documents set status = 'failed', stage = null, status_detail = $2, updated_at = now() where id = $1`,
-        [job.documentId, `Processing failed: ${message}`],
-      );
+      log(`runner error: ${err instanceof Error ? err.message : err}`);
     }
   }
   listener.release();
